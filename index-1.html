@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WeatherX - Live Weather</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #10172a;
+    color: white;
+    padding: 20px;
+}
+
+.container {
+    max-width: 500px;
+    margin: auto;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.logo {
+    font-size: 25px;
+    font-weight: bold;
+    color: #55d6ff;
+}
+
+.badge {
+    background: #173b52;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+h2 {
+    margin-bottom: 15px;
+}
+
+.search {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 25px;
+}
+
+select {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: #202c44;
+    color: white;
+    font-size: 15px;
+}
+
+button {
+    background: #24b8ed;
+    border: none;
+    padding: 13px 18px;
+    border-radius: 12px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.weather-card {
+    background: linear-gradient(145deg,#176b9c,#273c83);
+    padding: 28px;
+    border-radius: 25px;
+    text-align: center;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 30px #0005;
+}
+
+.city {
+    font-size: 23px;
+    font-weight: bold;
+}
+
+.icon {
+    font-size: 65px;
+    margin: 15px;
+}
+
+.temperature {
+    font-size: 65px;
+    font-weight: bold;
+}
+
+.condition {
+    font-size: 18px;
+    margin-top: 8px;
+}
+
+.details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.detail-card {
+    background: #202c44;
+    padding: 22px 12px;
+    border-radius: 18px;
+    text-align: center;
+}
+
+.detail-card .icon-small {
+    font-size: 25px;
+}
+
+.detail-card p {
+    color: #aab8d0;
+    margin-top: 8px;
+    font-size: 13px;
+}
+
+.detail-card h3 {
+    margin-top: 8px;
+    font-size: 21px;
+}
+
+.update {
+    text-align: center;
+    color: #aab8d0;
+    font-size: 13px;
+    margin: 15px 0;
+}
+
+footer {
+    text-align: center;
+    color: #8798b5;
+    font-size: 12px;
+    margin-top: 30px;
+}
+
+#status {
+    text-align: center;
+    margin: 12px;
+    color: #55d6ff;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+    <div class="logo">🌦️ WeatherX</div>
+    <div class="badge">LIVE WEATHER</div>
+</header>
+
+<h2>Weather Dashboard</h2>
+
+<div class="search">
+    <select id="city">
+        <option value="9.9252,78.1198,Madurai">Madurai</option>
+        <option value="13.0827,80.2707,Chennai">Chennai</option>
+        <option value="11.0168,76.9558,Coimbatore">Coimbatore</option>
+        <option value="8.7139,77.7567,Tirunelveli">Tirunelveli</option>
+    </select>
+
+    <button onclick="getWeather()">Search</button>
+</div>
+
+<div id="status">Loading weather data...</div>
+
+<div class="weather-card">
+
+    <div class="city" id="cityName">Madurai</div>
+
+    <div class="icon" id="weatherIcon">🌤️</div>
+
+    <div class="temperature" id="temp">--°C</div>
+
+    <div class="condition" id="condition">Loading...</div>
+
+</div>
+
+<div class="details">
+
+    <div class="detail-card">
+        <div class="icon-small">💧</div>
+        <p>Humidity</p>
+        <h3 id="humidity">--%</h3>
+    </div>
+
+    <div class="detail-card">
+        <div class="icon-small">💨</div>
+        <p>Wind Speed</p>
+        <h3 id="wind">-- km/h</h3>
+    </div>
+
+    <div class="detail-card">
+        <div class="icon-small">🌡️</div>
+        <p>Feels Like</p>
+        <h3 id="feels">--°C</h3>
+    </div>
+
+    <div class="detail-card">
+        <div class="icon-small">🌧️</div>
+        <p>Rain</p>
+        <h3 id="rain">-- mm</h3>
+    </div>
+
+</div>
+
+<div class="update" id="updated">
+    Waiting for update...
+</div>
+
+<button onclick="getWeather()" style="width:100%">
+    🔄 Refresh Weather
+</button>
+
+<footer>
+    WeatherX | Live Weather Monitoring System<br>
+    Powered by Open-Meteo API
+</footer>
+
+</div>
+
+<script>
+
+const weatherTypes = {
+    0: ["Clear Sky", "☀️"],
+    1: ["Mainly Clear", "🌤️"],
+    2: ["Partly Cloudy", "⛅"],
+    3: ["Cloudy", "☁️"],
+    45: ["Foggy", "🌫️"],
+    48: ["Foggy", "🌫️"],
+    51: ["Light Drizzle", "🌦️"],
+    53: ["Drizzle", "🌦️"],
+    55: ["Heavy Drizzle", "🌧️"],
+    61: ["Light Rain", "🌧️"],
+    63: ["Rain", "🌧️"],
+    65: ["Heavy Rain", "⛈️"],
+    71: ["Snow", "❄️"],
+    80: ["Rain Showers", "🌦️"],
+    81: ["Rain Showers", "🌧️"],
+    82: ["Heavy Showers", "⛈️"],
+    95: ["Thunderstorm", "⛈️"]
+};
+
+async function getWeather() {
+
+    const selected = document.getElementById("city").value;
+    const parts = selected.split(",");
+
+    const lat = parts[0];
+    const lon = parts[1];
+    const cityName = parts[2];
+
+    document.getElementById("status").innerText =
+        "Connecting to weather server...";
+
+    try {
+
+        const url =
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&timezone=auto`;
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error("Weather service unavailable");
+        }
+
+        const data = await response.json();
+        const w = data.current;
+
+        const code = w.weather_code;
+        const weather = weatherTypes[code] || ["Weather Condition", "🌤️"];
+
+        document.getElementById("cityName").innerText = cityName;
+        document.getElementById("temp").innerText =
+            w.temperature_2m + "°C";
+
+        document.getElementById("condition").innerText =
+            weather[0];
+
+        document.getElementById("weatherIcon").innerText =
+            weather[1];
+
+        document.getElementById("humidity").innerText =
+            w.relative_humidity_2m + "%";
+
+        document.getElementById("wind").innerText =
+            w.wind_speed_10m + " km/h";
+
+        document.getElementById("feels").innerText =
+            w.apparent_temperature + "°C";
+
+        document.getElementById("rain").innerText =
+            w.precipitation + " mm";
+
+        document.getElementById("status").innerText =
+            "🟢 Live weather connected";
+
+        document.getElementById("updated").innerText =
+            "Last updated: " + new Date().toLocaleString();
+
+    } catch(error) {
+
+        document.getElementById("status").innerText =
+            "🔴 Connection failed. Please try again.";
+
+    }
+}
+
+getWeather();
+
+</script>
+
+</body>
+</html>
